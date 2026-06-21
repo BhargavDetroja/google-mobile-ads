@@ -7,76 +7,122 @@ async function bridgeCall(method, params = {}) {
     return response.json();
 }
 
-/**
- * Initialize the Google Mobile Ads SDK.
- * Must be called once before showing any ads.
- *
- * @param {{ app_id?: string }} options
- */
+// ── SDK ───────────────────────────────────────────────────────────────────────
+
 export async function initialize(options = {}) {
     return bridgeCall('GoogleMobileAds.Initialize', options);
 }
 
-/**
- * Show a banner ad.
- *
- * @param {{ ad_unit_id?: string, position?: 'top'|'bottom', size?: 'banner'|'large_banner'|'medium_rectangle'|'adaptive' }} options
- */
+// ── Banner ────────────────────────────────────────────────────────────────────
+
 export async function showBanner(options = {}) {
     return bridgeCall('GoogleMobileAds.ShowBanner', options);
 }
 
-/**
- * Hide and destroy the current banner ad.
- */
 export async function hideBanner() {
     return bridgeCall('GoogleMobileAds.HideBanner', {});
 }
 
-/**
- * Pre-load an interstitial ad.
- *
- * @param {{ ad_unit_id?: string }} options
- */
+// ── Interstitial ──────────────────────────────────────────────────────────────
+
 export async function loadInterstitial(options = {}) {
     return bridgeCall('GoogleMobileAds.LoadInterstitial', options);
 }
 
-/**
- * Show the pre-loaded interstitial ad.
- */
 export async function showInterstitial() {
     return bridgeCall('GoogleMobileAds.ShowInterstitial', {});
 }
 
-/**
- * Pre-load a rewarded ad.
- *
- * @param {{ ad_unit_id?: string }} options
- */
+// ── Rewarded ──────────────────────────────────────────────────────────────────
+
 export async function loadRewarded(options = {}) {
     return bridgeCall('GoogleMobileAds.LoadRewarded', options);
 }
 
-/**
- * Show the pre-loaded rewarded ad.
- */
 export async function showRewarded() {
     return bridgeCall('GoogleMobileAds.ShowRewarded', {});
 }
 
-/**
- * Pre-load an app open ad.
- *
- * @param {{ ad_unit_id?: string }} options
- */
+// ── Rewarded Interstitial ─────────────────────────────────────────────────────
+
+export async function loadRewardedInterstitial(options = {}) {
+    return bridgeCall('GoogleMobileAds.LoadRewardedInterstitial', options);
+}
+
+export async function showRewardedInterstitial() {
+    return bridgeCall('GoogleMobileAds.ShowRewardedInterstitial', {});
+}
+
+// ── App Open ──────────────────────────────────────────────────────────────────
+
 export async function loadAppOpen(options = {}) {
     return bridgeCall('GoogleMobileAds.LoadAppOpen', options);
 }
 
-/**
- * Show the pre-loaded app open ad.
- */
 export async function showAppOpen() {
     return bridgeCall('GoogleMobileAds.ShowAppOpen', {});
+}
+
+// ── Event listeners ───────────────────────────────────────────────────────────
+
+/**
+ * Listen for any ad event dispatched from native code.
+ *
+ * Works with any frontend framework — React, Vue, Alpine, plain JS.
+ * Returns an unsubscribe function you can call to remove the listener.
+ *
+ * Ad event names:
+ *   NativePHP\GoogleMobileAds\Events\AdLoaded
+ *   NativePHP\GoogleMobileAds\Events\AdFailedToLoad
+ *   NativePHP\GoogleMobileAds\Events\AdOpened
+ *   NativePHP\GoogleMobileAds\Events\AdClosed
+ *   NativePHP\GoogleMobileAds\Events\AdImpression
+ *   NativePHP\GoogleMobileAds\Events\AdClicked
+ *   NativePHP\GoogleMobileAds\Events\RewardEarned
+ *
+ * @param {string} eventName - Fully-qualified PHP event class name
+ * @param {(payload: object) => void} callback
+ * @returns {() => void} unsubscribe function
+ */
+export function onAdEvent(eventName, callback) {
+    const handler = (e) => {
+        if (e.detail?.event === eventName) {
+            callback(e.detail.payload ?? {});
+        }
+    };
+    document.addEventListener('native-event', handler);
+    return () => document.removeEventListener('native-event', handler);
+}
+
+/**
+ * Convenience: listen for the RewardEarned event.
+ * Returns an unsubscribe function.
+ *
+ * @param {(payload: { rewardType: string, rewardAmount: number }) => void} callback
+ * @returns {() => void} unsubscribe function
+ */
+export function onRewardEarned(callback) {
+    return onAdEvent('NativePHP\\GoogleMobileAds\\Events\\RewardEarned', callback);
+}
+
+/**
+ * Convenience: listen for AdLoaded.
+ * Returns an unsubscribe function.
+ *
+ * @param {(payload: { adType: string, adUnitId: string }) => void} callback
+ * @returns {() => void} unsubscribe function
+ */
+export function onAdLoaded(callback) {
+    return onAdEvent('NativePHP\\GoogleMobileAds\\Events\\AdLoaded', callback);
+}
+
+/**
+ * Convenience: listen for AdClosed.
+ * Returns an unsubscribe function.
+ *
+ * @param {(payload: { adType: string }) => void} callback
+ * @returns {() => void} unsubscribe function
+ */
+export function onAdClosed(callback) {
+    return onAdEvent('NativePHP\\GoogleMobileAds\\Events\\AdClosed', callback);
 }

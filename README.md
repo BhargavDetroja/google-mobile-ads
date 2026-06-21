@@ -2,6 +2,8 @@
 
 Add **Google AdMob** ads to your [NativePHP Mobile](https://nativephp.com) app in minutes — no Kotlin, no Swift, no Gradle edits. Just install, configure, and start showing ads.
 
+Works with **any frontend stack** — Livewire, React, Vue, Alpine.js, or plain JavaScript.
+
 Supports **Banner**, **Interstitial**, **Rewarded**, **Rewarded Interstitial**, and **App Open** ad formats on both **Android** and **iOS**.
 
 ---
@@ -13,7 +15,7 @@ Supports **Banner**, **Interstitial**, **Rewarded**, **Rewarded Interstitial**, 
 - NativePHP Mobile 3+
 - An [AdMob account](https://admob.google.com) (free)
 
-> The Google Mobile Ads SDK is installed automatically on both platforms — you don't touch any native files.
+> The Google Mobile Ads SDK is installed automatically on both platforms — no native files to edit.
 
 ---
 
@@ -22,7 +24,7 @@ Supports **Banner**, **Interstitial**, **Rewarded**, **Rewarded Interstitial**, 
 ### Step 1 — Install the package
 
 ```bash
-composer require nativephp/google-mobile-ads
+composer require bhargavdetroja/nativephp-google-mobile-ads
 ```
 
 ### Step 2 — Publish the config
@@ -34,7 +36,7 @@ php artisan vendor:publish --tag=google-mobile-ads-config
 ### Step 3 — Add your AdMob IDs to `.env`
 
 ```env
-# Your AdMob App IDs (one per platform — from AdMob console → Apps)
+# Your AdMob App ID (from AdMob console → Apps)
 ADMOB_APP_ID=ca-app-pub-XXXXXXXXXXXXXXXX~XXXXXXXXXX
 
 # Ad Unit IDs
@@ -47,11 +49,11 @@ ADMOB_ANCHORED_ADAPTIVE_BANNER_AD_UNIT_ID=ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX
 ADMOB_INLINE_ADAPTIVE_BANNER_AD_UNIT_ID=ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX
 ```
 
-> **Not ready for production yet?** Use the [test IDs below](#test-ids) — they show real demo ads and never risk a policy violation.
+> Not ready for real IDs yet? Use the [test IDs below](#test-ids) — they show demo ads and never risk a policy violation.
 
 ### Step 4 — Set your iOS App ID
 
-Open `vendor/nativephp/google-mobile-ads/nativephp.json` and replace the iOS App ID:
+Open `vendor/bhargavdetroja/nativephp-google-mobile-ads/nativephp.json` and replace the iOS App ID:
 
 ```json
 "ios": {
@@ -61,7 +63,7 @@ Open `vendor/nativephp/google-mobile-ads/nativephp.json` and replace the iOS App
 }
 ```
 
-> iOS will **crash on launch** if this value is wrong or missing. It must match the App ID from your AdMob console.
+> iOS will **crash on launch** if this is missing or wrong. It must be your real iOS App ID from AdMob.
 
 ### Step 5 — Run native install
 
@@ -69,49 +71,44 @@ Open `vendor/nativephp/google-mobile-ads/nativephp.json` and replace the iOS App
 php artisan native:install --force
 ```
 
-This automatically:
-- Adds the Google Mobile Ads SDK to Android (Gradle) and iOS (CocoaPods)
-- Injects the required permissions into `AndroidManifest.xml`
-- Merges `GADApplicationIdentifier` and ATT tracking description into `Info.plist`
-
-That's it. No native files to edit manually.
+This automatically adds the SDK to Android and iOS, injects permissions, and merges the required `Info.plist` keys. No manual native file edits.
 
 ---
 
 ## Showing Ads
 
-### Initialize the SDK
-
-Call this once when your app loads — a Livewire `mount()` or a `DOMContentLoaded` listener works well.
+Import the JS bridge functions wherever your frontend lives — Blade, a React component, a Vue component, or a plain JS file.
 
 ```javascript
-import { initialize } from 'vendor/nativephp/google-mobile-ads/resources/js/index.js';
-
-document.addEventListener('DOMContentLoaded', () => initialize());
+import {
+    initialize,
+    showBanner, hideBanner,
+    loadInterstitial, showInterstitial,
+    loadRewarded, showRewarded,
+    loadRewardedInterstitial, showRewardedInterstitial,
+    loadAppOpen, showAppOpen,
+    onAdLoaded, onAdClosed, onRewardEarned,
+} from 'vendor/bhargavdetroja/nativephp-google-mobile-ads/resources/js/index.js';
 ```
 
-Or from PHP via the Facade:
+### Initialize the SDK
 
-```php
-use NativePHP\GoogleMobileAds\Facades\GoogleMobileAds;
+Call once when your app loads.
 
-GoogleMobileAds::initialize();
+```javascript
+document.addEventListener('DOMContentLoaded', () => initialize());
 ```
 
 ---
 
 ### Banner Ads
 
-A persistent banner that sits at the top or bottom of the screen.
-
 ```javascript
-import { showBanner, hideBanner } from 'vendor/nativephp/google-mobile-ads/resources/js/index.js';
-
-// Show a banner at the bottom of the screen
+// Show a banner at the bottom (stays visible until you hide it)
 await showBanner({
-    ad_unit_id: '{{ config("google-mobile-ads.banner_ad_unit_id") }}',
-    position: 'bottom',  // 'top' or 'bottom'
-    size: 'adaptive',    // 'adaptive', 'banner', 'large_banner', 'medium_rectangle'
+    ad_unit_id: 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX',
+    position: 'bottom',   // 'top' or 'bottom'
+    size: 'adaptive',     // 'adaptive', 'banner', 'large_banner', 'medium_rectangle'
 });
 
 // Remove the banner
@@ -122,81 +119,61 @@ await hideBanner();
 
 ### Interstitial Ads
 
-Full-screen ads shown at natural transition points (between levels, after completing a task).
-
-**Load it early, show it later:**
+Full-screen ads shown at natural breaks (between levels, after completing a task). Always load before showing.
 
 ```javascript
-import { loadInterstitial, showInterstitial } from 'vendor/nativephp/google-mobile-ads/resources/js/index.js';
+// Load early so it's ready when you need it
+await loadInterstitial({ ad_unit_id: 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX' });
 
-// Load when the page opens (or before you need it)
-await loadInterstitial({ ad_unit_id: '{{ config("google-mobile-ads.interstitial_ad_unit_id") }}' });
-
-// Show it at the right moment
-await showInterstitial();
+// Wait for it to be ready, then show
+const unsubscribe = onAdLoaded(({ adType }) => {
+    if (adType === 'interstitial') {
+        unsubscribe();
+        showInterstitial();
+    }
+});
 ```
-
-Listen for the `AdLoaded` event to know when it's ready before calling `showInterstitial()`.
 
 ---
 
 ### Rewarded Ads
 
-Users watch an ad in exchange for in-app rewards (coins, lives, hints).
+Users watch an ad to earn in-app rewards (coins, lives, hints).
 
 ```javascript
-import { loadRewarded, showRewarded } from 'vendor/nativephp/google-mobile-ads/resources/js/index.js';
-
-await loadRewarded({ ad_unit_id: '{{ config("google-mobile-ads.rewarded_ad_unit_id") }}' });
+await loadRewarded({ ad_unit_id: 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX' });
 await showRewarded();
-```
 
-Handle the reward in PHP:
-
-```php
-use NativePHP\GoogleMobileAds\Events\RewardEarned;
-
-// In a Livewire component:
-protected $listeners = [
-    RewardEarned::class => 'handleReward',
-];
-
-public function handleReward(RewardEarned $event): void
-{
-    // $event->rewardType   → e.g. "coins"
-    // $event->rewardAmount → e.g. 50
-    auth()->user()->increment('coins', $event->rewardAmount);
-}
+// Listen for the reward — works in any framework
+onRewardEarned(({ rewardType, rewardAmount }) => {
+    console.log(`User earned ${rewardAmount} ${rewardType}`);
+    // Update UI, call your API, etc.
+});
 ```
 
 ---
 
 ### Rewarded Interstitial Ads
 
-Like rewarded ads, but shown between content without requiring the user to opt in.
+Like rewarded ads but shown between content — no opt-in required from the user.
 
 ```javascript
-import { loadRewardedInterstitial, showRewardedInterstitial } from 'vendor/nativephp/google-mobile-ads/resources/js/index.js';
-
-await loadRewardedInterstitial({ ad_unit_id: '{{ config("google-mobile-ads.rewarded_interstitial_ad_unit_id") }}' });
+await loadRewardedInterstitial({ ad_unit_id: 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX' });
 await showRewardedInterstitial();
-```
 
-The `RewardEarned` event fires when the user earns their reward, same as rewarded ads.
+onRewardEarned(({ rewardType, rewardAmount }) => {
+    console.log(`User earned ${rewardAmount} ${rewardType}`);
+});
+```
 
 ---
 
 ### App Open Ads
 
-Shown when the user opens your app or returns to it from the background.
+Shown when the user opens your app or returns from the background.
 
 ```javascript
-import { loadAppOpen, showAppOpen } from 'vendor/nativephp/google-mobile-ads/resources/js/index.js';
-
-// Load on app start
-await loadAppOpen({ ad_unit_id: '{{ config("google-mobile-ads.app_open_ad_unit_id") }}' });
-
-// Show when ready
+await loadAppOpen({ ad_unit_id: 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX' });
 await showAppOpen();
 ```
 
@@ -204,13 +181,163 @@ await showAppOpen();
 
 ## Listening to Events
 
-All events are standard Laravel events. Use them in Livewire, event listeners, or queued jobs.
+Ad events fire in two ways — use whichever fits your stack.
 
-| Event | Properties | When it fires |
+### Option 1 — JavaScript (works everywhere)
+
+Use the built-in helper functions from the JS bridge. They listen to DOM `CustomEvent` dispatches from the native layer.
+
+```javascript
+import { onAdLoaded, onAdClosed, onRewardEarned, onAdEvent } from '...';
+
+// Convenience helpers
+const stop = onAdLoaded(({ adType, adUnitId }) => {
+    console.log(`${adType} ad is ready`);
+});
+
+onAdClosed(({ adType }) => {
+    if (adType === 'interstitial') loadInterstitial({ ad_unit_id: '...' }); // pre-load next
+});
+
+onRewardEarned(({ rewardType, rewardAmount }) => {
+    grantUserReward(rewardType, rewardAmount);
+});
+
+// Call stop() to remove a listener
+stop();
+
+// Listen to any ad event by its full class name
+onAdEvent('NativePHP\\GoogleMobileAds\\Events\\AdFailedToLoad', ({ adType, errorMessage }) => {
+    console.error(`${adType} failed: ${errorMessage}`);
+});
+```
+
+**React example:**
+
+```jsx
+import { useEffect } from 'react';
+import { loadRewarded, showRewarded, onRewardEarned, onAdLoaded } from '...';
+
+export default function RewardButton() {
+    useEffect(() => {
+        loadRewarded({ ad_unit_id: 'ca-app-pub-...' });
+
+        const stopLoaded = onAdLoaded(({ adType }) => {
+            if (adType === 'rewarded') setAdReady(true);
+        });
+
+        const stopReward = onRewardEarned(({ rewardAmount }) => {
+            addCoins(rewardAmount);
+        });
+
+        return () => { stopLoaded(); stopReward(); }; // clean up on unmount
+    }, []);
+
+    return <button onClick={showRewarded}>Watch ad for coins</button>;
+}
+```
+
+**Vue example:**
+
+```vue
+<script setup>
+import { onMounted, onUnmounted } from 'vue';
+import { loadRewarded, showRewarded, onRewardEarned } from '...';
+
+let stopReward;
+
+onMounted(() => {
+    loadRewarded({ ad_unit_id: 'ca-app-pub-...' });
+    stopReward = onRewardEarned(({ rewardAmount }) => addCoins(rewardAmount));
+});
+
+onUnmounted(() => stopReward?.());
+</script>
+
+<template>
+    <button @click="showRewarded">Watch ad for coins</button>
+</template>
+```
+
+**Alpine.js example:**
+
+```html
+<div x-data="{
+    init() {
+        loadRewarded({ ad_unit_id: 'ca-app-pub-...' });
+        onRewardEarned(({ rewardAmount }) => this.coins += rewardAmount);
+    },
+    coins: 0
+}">
+    <button @click="showRewarded()">Watch ad — you have <span x-text="coins"></span> coins</button>
+</div>
+```
+
+---
+
+### Option 2 — PHP / Laravel (server-side)
+
+Ad events are also standard Laravel events, dispatched from native code to your backend. Use them in event listeners, queued jobs, or Livewire components.
+
+**Any Laravel listener:**
+
+```bash
+php artisan make:listener GrantRewardOnAdWatched
+```
+
+```php
+use NativePHP\GoogleMobileAds\Events\RewardEarned;
+use Illuminate\Contracts\Queue\ShouldQueue;
+
+class GrantRewardOnAdWatched implements ShouldQueue
+{
+    public function handle(RewardEarned $event): void
+    {
+        // $event->rewardType   → e.g. "coins"
+        // $event->rewardAmount → e.g. 50
+        auth()->user()->increment('coins', $event->rewardAmount);
+    }
+}
+```
+
+Register it in `AppServiceProvider`:
+
+```php
+use Illuminate\Support\Facades\Event;
+
+Event::listen(RewardEarned::class, GrantRewardOnAdWatched::class);
+```
+
+**Livewire component:**
+
+```php
+use NativePHP\GoogleMobileAds\Events\AdLoaded;
+use NativePHP\GoogleMobileAds\Events\AdClosed;
+use NativePHP\GoogleMobileAds\Events\RewardEarned;
+
+protected $listeners = [
+    AdLoaded::class    => 'onAdLoaded',
+    AdClosed::class    => 'onAdClosed',
+    RewardEarned::class => 'onRewardEarned',
+];
+
+public function onAdLoaded(AdLoaded $event): void { /* ... */ }
+public function onAdClosed(AdClosed $event): void { /* ... */ }
+public function onRewardEarned(RewardEarned $event): void
+{
+    auth()->user()->increment('coins', $event->rewardAmount);
+}
+```
+
+---
+
+## All Events
+
+| Event class | Properties | When it fires |
 |---|---|---|
 | `AdLoaded` | `$adType`, `$adUnitId` | Ad finished loading and is ready to show |
 | `AdFailedToLoad` | `$adType`, `$adUnitId`, `$errorCode`, `$errorMessage` | Ad failed to load |
-| `AdOpened` | `$adType` | Full-screen ad appeared |
+| `AdOpened` | `$adType` | Full-screen ad appeared on screen |
 | `AdClosed` | `$adType` | Full-screen ad was dismissed |
 | `AdImpression` | `$adType` | Ad recorded an impression |
 | `AdClicked` | `$adType` | User tapped an ad |
@@ -218,35 +345,11 @@ All events are standard Laravel events. Use them in Livewire, event listeners, o
 
 `$adType` is one of: `banner`, `interstitial`, `rewarded`, `rewarded_interstitial`, `app_open`
 
-### Example: pre-load the next interstitial after one is dismissed
-
-```php
-use NativePHP\GoogleMobileAds\Events\AdLoaded;
-use NativePHP\GoogleMobileAds\Events\AdClosed;
-
-protected $listeners = [
-    AdLoaded::class => 'onAdLoaded',
-    AdClosed::class => 'onAdClosed',
-];
-
-public function onAdLoaded(AdLoaded $event): void
-{
-    $this->adReady = true;
-}
-
-public function onAdClosed(AdClosed $event): void
-{
-    if ($event->adType === 'interstitial') {
-        $this->loadNextInterstitial();
-    }
-}
-```
-
 ---
 
 ## Test IDs
 
-Use these during development and testing. They show real demo ads so you can verify everything works without risking an AdMob policy violation.
+Use these during development. They display real demo ads — no policy risk.
 
 ### Android
 
@@ -260,7 +363,7 @@ Use these during development and testing. They show real demo ads so you can ver
 | Rewarded Interstitial | `ca-app-pub-3940256099942544/5354046379` |
 | Native | `ca-app-pub-3940256099942544/2247696110` |
 
-**Android test App ID:** `ca-app-pub-3940256099942544~3347511713`
+Android test App ID: `ca-app-pub-3940256099942544~3347511713`
 
 ### iOS
 
@@ -273,39 +376,36 @@ Use these during development and testing. They show real demo ads so you can ver
 | Rewarded Interstitial | `ca-app-pub-3940256099942544/6978759866` |
 | Native | `ca-app-pub-3940256099942544/3986624511` |
 
-**iOS test App ID:** `ca-app-pub-3940256099942544~1458002511`
+iOS test App ID: `ca-app-pub-3940256099942544~1458002511`
 
-> Test ads only work on real devices. **iOS Simulator does not support the Google Mobile Ads SDK** — use a physical iPhone. Android emulators work if the AVD uses a **Google APIs** system image.
+> Test ads only work on **real devices**. iOS Simulator does not support the Google Mobile Ads SDK. Android emulators must use a **Google APIs** system image (not plain Android or Google Play images).
 
 ---
 
 ## Going to Production
 
-When you're ready to publish your app:
-
 1. Replace all test IDs in `.env` with your real Ad Unit IDs from the [AdMob console](https://admob.google.com).
-2. Update the iOS App ID in `vendor/nativephp/google-mobile-ads/nativephp.json` to your real iOS App ID.
+2. Update `vendor/bhargavdetroja/nativephp-google-mobile-ads/nativephp.json` with your real iOS App ID.
 3. Run `php artisan native:install --force` to rebuild native configurations.
-4. Build your release: `php artisan native:run android --release` or `php artisan native:run ios`.
 
 ---
 
 ## Troubleshooting
 
 **App crashes on iOS launch**
-Your `GADApplicationIdentifier` is wrong or missing. Open `vendor/nativephp/google-mobile-ads/nativephp.json`, set the correct iOS App ID under `ios.info_plist.GADApplicationIdentifier`, then run `php artisan native:install --force`.
+Your `GADApplicationIdentifier` is wrong or missing. Open `vendor/bhargavdetroja/nativephp-google-mobile-ads/nativephp.json`, set the correct iOS App ID, then run `php artisan native:install --force`.
 
 **Ads are not showing**
 - Make sure you called `initialize()` before requesting any ads.
-- For interstitial, rewarded, and app open — you must call `load*()` and wait for the `AdLoaded` event before calling `show*()`.
-- Test ads don't work on iOS Simulator. Use a real device.
-- On Android emulator, only **Google APIs** AVD images support ads (not plain Android or Google Play images).
+- For interstitial, rewarded, and app open — you must call `load*()` and wait for `AdLoaded` before calling `show*()`.
+- Test ads do not work on iOS Simulator — use a real device.
+- On Android emulator, use a **Google APIs** AVD image.
 
 **`No interstitial ad loaded` error**
-You called `showInterstitial()` before the ad finished loading. Listen for the `AdLoaded` event first, or add a delay.
+You called `showInterstitial()` before the ad finished loading. Wait for the `AdLoaded` event with `adType === 'interstitial'` before calling show.
 
-**Changes not showing after editing config**
-Run `php artisan native:install --force` followed by `php artisan native:run android` or `php artisan native:run ios`.
+**Changes not showing after editing `.env`**
+Run `php artisan native:install --force` then `php artisan native:run android` or `php artisan native:run ios`.
 
 **Validate plugin setup**
 ```bash

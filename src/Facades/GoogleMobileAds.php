@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Facade;
  * @method static void showInterstitial()
  * @method static void loadRewarded(array $options = [])
  * @method static void showRewarded()
+ * @method static void loadRewardedInterstitial(array $options = [])
+ * @method static void showRewardedInterstitial()
  * @method static void loadAppOpen(array $options = [])
  * @method static void showAppOpen()
  *

@@ -83,6 +83,26 @@ class GoogleMobileAds
     }
 
     /**
+     * Pre-load a rewarded interstitial ad.
+     *
+     * @param  array{ad_unit_id?: string}  $options
+     */
+    public function loadRewardedInterstitial(array $options = []): void
+    {
+        $this->bridgeCall('GoogleMobileAds.LoadRewardedInterstitial', [
+            'ad_unit_id' => $options['ad_unit_id'] ?? config('google-mobile-ads.rewarded_interstitial_ad_unit_id'),
+        ]);
+    }
+
+    /**
+     * Show a previously loaded rewarded interstitial ad. Fires RewardEarned event when the user completes the ad.
+     */
+    public function showRewardedInterstitial(): void
+    {
+        $this->bridgeCall('GoogleMobileAds.ShowRewardedInterstitial', []);
+    }
+
+    /**
      * Pre-load an app open ad.
      *
      * @param  array{ad_unit_id?: string}  $options
