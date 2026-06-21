@@ -1,0 +1,107 @@
+{
+    "namespace": "GoogleMobileAds",
+    "bridge_functions": [
+        {
+            "name": "GoogleMobileAds.Initialize",
+            "ios": "GoogleMobileAdsFunctions.Initialize",
+            "android": "com.nativephp.plugins.googlemobileads.GoogleMobileAdsFunctions.Initialize"
+        },
+        {
+            "name": "GoogleMobileAds.ShowBanner",
+            "ios": "GoogleMobileAdsFunctions.ShowBanner",
+            "android": "com.nativephp.plugins.googlemobileads.GoogleMobileAdsFunctions.ShowBanner"
+        },
+        {
+            "name": "GoogleMobileAds.HideBanner",
+            "ios": "GoogleMobileAdsFunctions.HideBanner",
+            "android": "com.nativephp.plugins.googlemobileads.GoogleMobileAdsFunctions.HideBanner"
+        },
+        {
+            "name": "GoogleMobileAds.LoadInterstitial",
+            "ios": "GoogleMobileAdsFunctions.LoadInterstitial",
+            "android": "com.nativephp.plugins.googlemobileads.GoogleMobileAdsFunctions.LoadInterstitial"
+        },
+        {
+            "name": "GoogleMobileAds.ShowInterstitial",
+            "ios": "GoogleMobileAdsFunctions.ShowInterstitial",
+            "android": "com.nativephp.plugins.googlemobileads.GoogleMobileAdsFunctions.ShowInterstitial"
+        },
+        {
+            "name": "GoogleMobileAds.LoadRewarded",
+            "ios": "GoogleMobileAdsFunctions.LoadRewarded",
+            "android": "com.nativephp.plugins.googlemobileads.GoogleMobileAdsFunctions.LoadRewarded"
+        },
+        {
+            "name": "GoogleMobileAds.ShowRewarded",
+            "ios": "GoogleMobileAdsFunctions.ShowRewarded",
+            "android": "com.nativephp.plugins.googlemobileads.GoogleMobileAdsFunctions.ShowRewarded"
+        },
+        {
+            "name": "GoogleMobileAds.LoadRewardedInterstitial",
+            "ios": "GoogleMobileAdsFunctions.LoadRewardedInterstitial",
+            "android": "com.nativephp.plugins.googlemobileads.GoogleMobileAdsFunctions.LoadRewardedInterstitial"
+        },
+        {
+            "name": "GoogleMobileAds.ShowRewardedInterstitial",
+            "ios": "GoogleMobileAdsFunctions.ShowRewardedInterstitial",
+            "android": "com.nativephp.plugins.googlemobileads.GoogleMobileAdsFunctions.ShowRewardedInterstitial"
+        },
+        {
+            "name": "GoogleMobileAds.LoadAppOpen",
+            "ios": "GoogleMobileAdsFunctions.LoadAppOpen",
+            "android": "com.nativephp.plugins.googlemobileads.GoogleMobileAdsFunctions.LoadAppOpen"
+        },
+        {
+            "name": "GoogleMobileAds.ShowAppOpen",
+            "ios": "GoogleMobileAdsFunctions.ShowAppOpen",
+            "android": "com.nativephp.plugins.googlemobileads.GoogleMobileAdsFunctions.ShowAppOpen"
+        }
+    ],
+    "events": [
+        "NativePHP\\GoogleMobileAds\\Events\\AdLoaded",
+        "NativePHP\\GoogleMobileAds\\Events\\AdFailedToLoad",
+        "NativePHP\\GoogleMobileAds\\Events\\AdOpened",
+        "NativePHP\\GoogleMobileAds\\Events\\AdClosed",
+        "NativePHP\\GoogleMobileAds\\Events\\AdImpression",
+        "NativePHP\\GoogleMobileAds\\Events\\AdClicked",
+        "NativePHP\\GoogleMobileAds\\Events\\RewardEarned"
+    ],
+    "android": {
+        "min_version": 21,
+        "permissions": [
+            "android.permission.INTERNET",
+            "android.permission.ACCESS_NETWORK_STATE"
+        ],
+        "application_meta_data": [
+            {
+                "name": "com.google.android.gms.ads.APPLICATION_ID",
+                "value": "${ADMOB_APP_ID}"
+            }
+        ],
+        "dependencies": {
+            "implementation": [
+                "com.google.android.gms:play-services-ads:23.6.0"
+            ]
+        }
+    },
+    "ios": {
+        "min_version": "14.0",
+        "info_plist": {
+            "GADApplicationIdentifier": "ca-app-pub-3940256099942544~1458002511",
+            "SKAdNetworkItems": [
+                {
+                    "SKAdNetworkIdentifier": "cstr6suwn9.skadnetwork"
+                }
+            ],
+            "NSUserTrackingUsageDescription": "This identifier will be used to deliver personalized ads to you."
+        },
+        "dependencies": {
+            "pods": [
+                {
+                    "name": "Google-Mobile-Ads-SDK",
+                    "version": "~> 11.0"
+                }
+            ]
+        }
+    }
+}
