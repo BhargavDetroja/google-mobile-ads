@@ -87,7 +87,7 @@
     "ios": {
         "min_version": "14.0",
         "info_plist": {
-            "GADApplicationIdentifier": "ca-app-pub-3940256099942544~1458002511",
+            "GADApplicationIdentifier": "${ADMOB_IOS_APP_ID}",
             "SKAdNetworkItems": [
                 {
                     "SKAdNetworkIdentifier": "cstr6suwn9.skadnetwork"

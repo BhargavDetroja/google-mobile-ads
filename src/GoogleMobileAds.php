@@ -2,124 +2,210 @@
 
 namespace NativePHP\GoogleMobileAds;
 
+use InvalidArgumentException;
+
 class GoogleMobileAds
 {
     /**
-     * Initialize the Google Mobile Ads SDK.
+     * Resolve a slot name or raw ad unit ID to the correct platform ID.
      *
-     * Must be called once before showing any ads. Fires AdLoaded event on success.
-     *
-     * @param  array{app_id?: string}  $options
+     * In test mode, Google's official demo IDs are returned automatically.
+     * Pass a slot name defined in config('google-mobile-ads.slots') or a raw
+     * ca-app-pub-... string to bypass slot resolution entirely.
      */
-    public function initialize(array $options = []): void
+    public function resolveAdUnitId(string $slot): string
     {
-        $appId = $options['app_id'] ?? config('google-mobile-ads.app_id');
+        if (config('google-mobile-ads.test_mode')) {
+            return $this->testSlotId($slot);
+        }
 
-        $this->bridgeCall('GoogleMobileAds.Initialize', ['app_id' => $appId]);
+        // Raw ad unit ID passed directly — use as-is
+        if (str_starts_with($slot, 'ca-app-pub-')) {
+            return $slot;
+        }
+
+        $slots = config('google-mobile-ads.slots', []);
+
+        if (! array_key_exists($slot, $slots)) {
+            throw new InvalidArgumentException("Google Mobile Ads: unknown slot \"{$slot}\". Define it in config/google-mobile-ads.php.");
+        }
+
+        $value = $slots[$slot];
+
+        if (is_array($value)) {
+            $platform = $this->platform();
+            return $value[$platform] ?? throw new InvalidArgumentException("Slot \"{$slot}\" has no ID defined for platform \"{$platform}\".");
+        }
+
+        return (string) $value;
     }
 
-    /**
-     * Show a banner ad anchored to the given position.
-     *
-     * @param  array{ad_unit_id?: string, position?: string, size?: string}  $options
-     *   position: 'top' | 'bottom' (default: 'bottom')
-     *   size: 'banner' | 'large_banner' | 'medium_rectangle' | 'adaptive' (default: 'adaptive')
-     */
-    public function showBanner(array $options = []): void
+    public function initialize(): static
     {
+        if (! $this->enabled()) {
+            return $this;
+        }
+
+        $this->bridgeCall('GoogleMobileAds.Initialize', []);
+
+        return $this;
+    }
+
+    public function showBanner(string $slot = 'banner', string $position = 'bottom', string $size = 'adaptive'): static
+    {
+        if (! $this->enabled()) {
+            return $this;
+        }
+
         $this->bridgeCall('GoogleMobileAds.ShowBanner', [
-            'ad_unit_id' => $options['ad_unit_id'] ?? config('google-mobile-ads.banner_ad_unit_id'),
-            'position'   => $options['position'] ?? 'bottom',
-            'size'       => $options['size'] ?? 'adaptive',
+            'ad_unit_id' => $this->resolveAdUnitId($slot),
+            'position'   => $position,
+            'size'       => $size,
         ]);
+
+        return $this;
     }
 
-    /**
-     * Hide and destroy the currently displayed banner ad.
-     */
-    public function hideBanner(): void
+    public function hideBanner(): static
     {
+        if (! $this->enabled()) {
+            return $this;
+        }
+
         $this->bridgeCall('GoogleMobileAds.HideBanner', []);
+
+        return $this;
     }
 
-    /**
-     * Pre-load an interstitial ad so it is ready to show instantly.
-     *
-     * @param  array{ad_unit_id?: string}  $options
-     */
-    public function loadInterstitial(array $options = []): void
+    public function loadInterstitial(string $slot = 'interstitial'): static
     {
+        if (! $this->enabled()) {
+            return $this;
+        }
+
         $this->bridgeCall('GoogleMobileAds.LoadInterstitial', [
-            'ad_unit_id' => $options['ad_unit_id'] ?? config('google-mobile-ads.interstitial_ad_unit_id'),
+            'ad_unit_id' => $this->resolveAdUnitId($slot),
         ]);
+
+        return $this;
     }
 
-    /**
-     * Show a previously loaded interstitial ad.
-     */
-    public function showInterstitial(): void
+    public function showInterstitial(): static
     {
+        if (! $this->enabled()) {
+            return $this;
+        }
+
         $this->bridgeCall('GoogleMobileAds.ShowInterstitial', []);
+
+        return $this;
     }
 
-    /**
-     * Pre-load a rewarded ad.
-     *
-     * @param  array{ad_unit_id?: string}  $options
-     */
-    public function loadRewarded(array $options = []): void
+    public function loadRewarded(string $slot = 'rewarded'): static
     {
+        if (! $this->enabled()) {
+            return $this;
+        }
+
         $this->bridgeCall('GoogleMobileAds.LoadRewarded', [
-            'ad_unit_id' => $options['ad_unit_id'] ?? config('google-mobile-ads.rewarded_ad_unit_id'),
+            'ad_unit_id' => $this->resolveAdUnitId($slot),
         ]);
+
+        return $this;
     }
 
-    /**
-     * Show a previously loaded rewarded ad. Fires RewardEarned event when the user completes the ad.
-     */
-    public function showRewarded(): void
+    public function showRewarded(): static
     {
+        if (! $this->enabled()) {
+            return $this;
+        }
+
         $this->bridgeCall('GoogleMobileAds.ShowRewarded', []);
+
+        return $this;
     }
 
-    /**
-     * Pre-load a rewarded interstitial ad.
-     *
-     * @param  array{ad_unit_id?: string}  $options
-     */
-    public function loadRewardedInterstitial(array $options = []): void
+    public function loadRewardedInterstitial(string $slot = 'rewarded_interstitial'): static
     {
+        if (! $this->enabled()) {
+            return $this;
+        }
+
         $this->bridgeCall('GoogleMobileAds.LoadRewardedInterstitial', [
-            'ad_unit_id' => $options['ad_unit_id'] ?? config('google-mobile-ads.rewarded_interstitial_ad_unit_id'),
+            'ad_unit_id' => $this->resolveAdUnitId($slot),
         ]);
+
+        return $this;
     }
 
-    /**
-     * Show a previously loaded rewarded interstitial ad. Fires RewardEarned event when the user completes the ad.
-     */
-    public function showRewardedInterstitial(): void
+    public function showRewardedInterstitial(): static
     {
+        if (! $this->enabled()) {
+            return $this;
+        }
+
         $this->bridgeCall('GoogleMobileAds.ShowRewardedInterstitial', []);
+
+        return $this;
     }
 
-    /**
-     * Pre-load an app open ad.
-     *
-     * @param  array{ad_unit_id?: string}  $options
-     */
-    public function loadAppOpen(array $options = []): void
+    public function loadAppOpen(string $slot = 'app_open'): static
     {
+        if (! $this->enabled()) {
+            return $this;
+        }
+
         $this->bridgeCall('GoogleMobileAds.LoadAppOpen', [
-            'ad_unit_id' => $options['ad_unit_id'] ?? config('google-mobile-ads.app_open_ad_unit_id'),
+            'ad_unit_id' => $this->resolveAdUnitId($slot),
         ]);
+
+        return $this;
     }
 
-    /**
-     * Show a previously loaded app open ad.
-     */
-    public function showAppOpen(): void
+    public function showAppOpen(): static
     {
+        if (! $this->enabled()) {
+            return $this;
+        }
+
         $this->bridgeCall('GoogleMobileAds.ShowAppOpen', []);
+
+        return $this;
+    }
+
+    protected function enabled(): bool
+    {
+        return (bool) config('google-mobile-ads.enabled', true);
+    }
+
+    protected function platform(): string
+    {
+        // NativePHP sets this at runtime; fall back to android for local dev
+        return match (true) {
+            str_contains(php_uname('s'), 'Darwin') && isset($_SERVER['SIMULATOR_DEVICE_NAME']) => 'ios',
+            defined('NATIVEPHP_PLATFORM') => NATIVEPHP_PLATFORM,
+            default => 'android',
+        };
+    }
+
+    protected function testSlotId(string $slot): string
+    {
+        // If a raw ID is passed directly, return it even in test mode
+        if (str_starts_with($slot, 'ca-app-pub-')) {
+            return $slot;
+        }
+
+        $testSlots = config('google-mobile-ads.test_slots', []);
+        $platform  = $this->platform();
+
+        if (isset($testSlots[$slot][$platform])) {
+            return $testSlots[$slot][$platform];
+        }
+
+        // Unknown slot name in test mode — return a generic banner test ID
+        return $platform === 'ios'
+            ? 'ca-app-pub-3940256099942544/2934735716'
+            : 'ca-app-pub-3940256099942544/6300978111';
     }
 
     /**
@@ -127,7 +213,7 @@ class GoogleMobileAds
      */
     private function bridgeCall(string $method, array $params): void
     {
-        // The JS bridge handles the actual HTTP call to /_native/api/call.
-        // In PHP context this is a no-op; calls originate from the JS layer.
+        // Calls originate from the JS layer via /_native/api/call.
+        // This PHP class is the server-side mirror used by Livewire/controllers.
     }
 }

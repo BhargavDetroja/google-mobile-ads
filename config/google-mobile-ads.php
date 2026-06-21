@@ -4,67 +4,104 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | AdMob App ID
+    | Kill Switch
     |--------------------------------------------------------------------------
-    |
-    | Your AdMob App ID from the AdMob console. Must match GADApplicationIdentifier
-    | in nativephp.json for iOS. Format: ca-app-pub-XXXXXXXXXXXXXXXX~XXXXXXXXXX
-    |
+    | Set ADMOB_ENABLED=false to disable all ads globally — useful for
+    | premium users, A/B testing, or debugging without removing any code.
     */
 
-    'app_id' => env('ADMOB_APP_ID'),
+    'enabled' => env('ADMOB_ENABLED', true),
 
     /*
     |--------------------------------------------------------------------------
-    | Ad Unit IDs
+    | App IDs
     |--------------------------------------------------------------------------
-    |
-    | Set your ad unit IDs from the AdMob console per format.
-    | The defaults below are Google's official Android demo/test IDs — safe to
-    | use during development without risking policy violations.
-    |
-    | Android demo IDs                              iOS demo IDs
-    | ─────────────────────────────────────────     ────────────────────────────────────────
-    | App Open:              9257395921             App Open:          5575463023
-    | Anchored Adaptive:     9214589741             Banner:            2934735716
-    | Inline Adaptive:       9214589741             Interstitial:      4411468910
-    | Fixed Size Banner:     6300978111             Rewarded:          1712485313
-    | Interstitial:          1033173712             Rewarded Interst.: 6978759866
-    | Rewarded:              5224354917             Native:            3986624511
-    | Rewarded Interstitial: 5354046379
-    | Native:                2247696110
-    | Native Video:          1044960115
-    |
-    | All Android IDs are prefixed with: ca-app-pub-3940256099942544/
-    | All iOS IDs are prefixed with:     ca-app-pub-3940256099942544/
-    |
+    | Your AdMob App IDs, one per platform. Found in AdMob console → Apps.
+    | Both are read from .env — no need to edit any vendor files.
     */
 
-    // Banner
-    'banner_ad_unit_id' => env('ADMOB_BANNER_AD_UNIT_ID', 'ca-app-pub-3940256099942544/6300978111'),
+    'android_app_id' => env('ADMOB_APP_ID'),
+    'ios_app_id'     => env('ADMOB_IOS_APP_ID'),
 
-    // Anchored Adaptive Banner (auto-sizes to screen width, best for most cases)
-    'anchored_adaptive_banner_ad_unit_id' => env('ADMOB_ANCHORED_ADAPTIVE_BANNER_AD_UNIT_ID', 'ca-app-pub-3940256099942544/9214589741'),
+    /*
+    |--------------------------------------------------------------------------
+    | Test Mode
+    |--------------------------------------------------------------------------
+    | When enabled, Google's official demo ad unit IDs are substituted
+    | automatically — safe to leave on in development. Defaults to true
+    | whenever APP_ENV is not "production".
+    */
 
-    // Inline Adaptive Banner (expands to content height, for scrollable feeds)
-    'inline_adaptive_banner_ad_unit_id' => env('ADMOB_INLINE_ADAPTIVE_BANNER_AD_UNIT_ID', 'ca-app-pub-3940256099942544/9214589741'),
+    'test_mode' => env('ADMOB_TEST_MODE', env('APP_ENV', 'production') !== 'production'),
 
-    // Interstitial
-    'interstitial_ad_unit_id' => env('ADMOB_INTERSTITIAL_AD_UNIT_ID', 'ca-app-pub-3940256099942544/1033173712'),
+    /*
+    |--------------------------------------------------------------------------
+    | Ad Slots
+    |--------------------------------------------------------------------------
+    | Name your ad placements. Use a plain string when both platforms share
+    | the same ID, or an array to set different IDs per platform.
+    |
+    |   // Same ID on both platforms:
+    |   'home_banner' => env('ADMOB_BANNER_AD_UNIT_ID'),
+    |
+    |   // Different ID per platform:
+    |   'home_banner' => [
+    |       'android' => env('ADMOB_BANNER_AD_UNIT_ID_ANDROID'),
+    |       'ios'     => env('ADMOB_BANNER_AD_UNIT_ID_IOS'),
+    |   ],
+    */
 
-    // Rewarded
-    'rewarded_ad_unit_id' => env('ADMOB_REWARDED_AD_UNIT_ID', 'ca-app-pub-3940256099942544/5224354917'),
+    'slots' => [
 
-    // Rewarded Interstitial (full-screen rewarded, no opt-out required)
-    'rewarded_interstitial_ad_unit_id' => env('ADMOB_REWARDED_INTERSTITIAL_AD_UNIT_ID', 'ca-app-pub-3940256099942544/5354046379'),
+        'banner'                   => env('ADMOB_BANNER_AD_UNIT_ID'),
+        'anchored_adaptive_banner' => env('ADMOB_ANCHORED_ADAPTIVE_BANNER_AD_UNIT_ID'),
+        'inline_adaptive_banner'   => env('ADMOB_INLINE_ADAPTIVE_BANNER_AD_UNIT_ID'),
+        'interstitial'             => env('ADMOB_INTERSTITIAL_AD_UNIT_ID'),
+        'app_open'                 => env('ADMOB_APP_OPEN_AD_UNIT_ID'),
+        'rewarded'                 => env('ADMOB_REWARDED_AD_UNIT_ID'),
+        'rewarded_interstitial'    => env('ADMOB_REWARDED_INTERSTITIAL_AD_UNIT_ID'),
 
-    // App Open
-    'app_open_ad_unit_id' => env('ADMOB_APP_OPEN_AD_UNIT_ID', 'ca-app-pub-3940256099942544/9257395921'),
+    ],
 
-    // Native Advanced
-    'native_ad_unit_id' => env('ADMOB_NATIVE_AD_UNIT_ID', 'ca-app-pub-3940256099942544/2247696110'),
+    /*
+    |--------------------------------------------------------------------------
+    | Test Ad Unit IDs
+    |--------------------------------------------------------------------------
+    | Google's official demo IDs used automatically in test_mode.
+    | Do not change these.
+    */
 
-    // Native Video
-    'native_video_ad_unit_id' => env('ADMOB_NATIVE_VIDEO_AD_UNIT_ID', 'ca-app-pub-3940256099942544/1044960115'),
+    'test_slots' => [
+
+        'banner' => [
+            'android' => 'ca-app-pub-3940256099942544/6300978111',
+            'ios'     => 'ca-app-pub-3940256099942544/2934735716',
+        ],
+        'anchored_adaptive_banner' => [
+            'android' => 'ca-app-pub-3940256099942544/9214589741',
+            'ios'     => 'ca-app-pub-3940256099942544/2934735716',
+        ],
+        'inline_adaptive_banner' => [
+            'android' => 'ca-app-pub-3940256099942544/9214589741',
+            'ios'     => 'ca-app-pub-3940256099942544/2934735716',
+        ],
+        'interstitial' => [
+            'android' => 'ca-app-pub-3940256099942544/1033173712',
+            'ios'     => 'ca-app-pub-3940256099942544/4411468910',
+        ],
+        'app_open' => [
+            'android' => 'ca-app-pub-3940256099942544/9257395921',
+            'ios'     => 'ca-app-pub-3940256099942544/5575463023',
+        ],
+        'rewarded' => [
+            'android' => 'ca-app-pub-3940256099942544/5224354917',
+            'ios'     => 'ca-app-pub-3940256099942544/1712485313',
+        ],
+        'rewarded_interstitial' => [
+            'android' => 'ca-app-pub-3940256099942544/5354046379',
+            'ios'     => 'ca-app-pub-3940256099942544/6978759866',
+        ],
+
+    ],
 
 ];

@@ -5,17 +5,18 @@ namespace NativePHP\GoogleMobileAds\Facades;
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @method static void initialize(array $options = [])
- * @method static void showBanner(array $options = [])
- * @method static void hideBanner()
- * @method static void loadInterstitial(array $options = [])
- * @method static void showInterstitial()
- * @method static void loadRewarded(array $options = [])
- * @method static void showRewarded()
- * @method static void loadRewardedInterstitial(array $options = [])
- * @method static void showRewardedInterstitial()
- * @method static void loadAppOpen(array $options = [])
- * @method static void showAppOpen()
+ * @method static string resolveAdUnitId(string $slot)
+ * @method static static initialize()
+ * @method static static showBanner(string $slot = 'banner', string $position = 'bottom', string $size = 'adaptive')
+ * @method static static hideBanner()
+ * @method static static loadInterstitial(string $slot = 'interstitial')
+ * @method static static showInterstitial()
+ * @method static static loadRewarded(string $slot = 'rewarded')
+ * @method static static showRewarded()
+ * @method static static loadRewardedInterstitial(string $slot = 'rewarded_interstitial')
+ * @method static static showRewardedInterstitial()
+ * @method static static loadAppOpen(string $slot = 'app_open')
+ * @method static static showAppOpen()
  *
  * @see \NativePHP\GoogleMobileAds\GoogleMobileAds
  */

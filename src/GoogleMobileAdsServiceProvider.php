@@ -2,6 +2,7 @@
 
 namespace NativePHP\GoogleMobileAds;
 
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 
 class GoogleMobileAdsServiceProvider extends ServiceProvider
@@ -15,6 +16,10 @@ class GoogleMobileAdsServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'google-ads');
+
+        Blade::component('google-ads::components.banner', 'google-ads::banner');
+
         $this->publishes([
             __DIR__.'/../config/google-mobile-ads.php' => config_path('google-mobile-ads.php'),
         ], 'google-mobile-ads-config');

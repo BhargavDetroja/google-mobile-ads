@@ -9,14 +9,19 @@ async function bridgeCall(method, params = {}) {
 
 // ── SDK ───────────────────────────────────────────────────────────────────────
 
-export async function initialize(options = {}) {
-    return bridgeCall('GoogleMobileAds.Initialize', options);
+export async function initialize() {
+    return bridgeCall('GoogleMobileAds.Initialize', {});
 }
 
 // ── Banner ────────────────────────────────────────────────────────────────────
 
-export async function showBanner(options = {}) {
-    return bridgeCall('GoogleMobileAds.ShowBanner', options);
+/**
+ * @param {string} adUnitId  Raw ca-app-pub-... ID (resolved server-side for slot names)
+ * @param {'top'|'bottom'} position
+ * @param {'adaptive'|'banner'|'large_banner'|'medium_rectangle'} size
+ */
+export async function showBanner(adUnitId, position = 'bottom', size = 'adaptive') {
+    return bridgeCall('GoogleMobileAds.ShowBanner', { ad_unit_id: adUnitId, position, size });
 }
 
 export async function hideBanner() {
@@ -25,8 +30,8 @@ export async function hideBanner() {
 
 // ── Interstitial ──────────────────────────────────────────────────────────────
 
-export async function loadInterstitial(options = {}) {
-    return bridgeCall('GoogleMobileAds.LoadInterstitial', options);
+export async function loadInterstitial(adUnitId) {
+    return bridgeCall('GoogleMobileAds.LoadInterstitial', { ad_unit_id: adUnitId });
 }
 
 export async function showInterstitial() {
@@ -35,8 +40,8 @@ export async function showInterstitial() {
 
 // ── Rewarded ──────────────────────────────────────────────────────────────────
 
-export async function loadRewarded(options = {}) {
-    return bridgeCall('GoogleMobileAds.LoadRewarded', options);
+export async function loadRewarded(adUnitId) {
+    return bridgeCall('GoogleMobileAds.LoadRewarded', { ad_unit_id: adUnitId });
 }
 
 export async function showRewarded() {
@@ -45,8 +50,8 @@ export async function showRewarded() {
 
 // ── Rewarded Interstitial ─────────────────────────────────────────────────────
 
-export async function loadRewardedInterstitial(options = {}) {
-    return bridgeCall('GoogleMobileAds.LoadRewardedInterstitial', options);
+export async function loadRewardedInterstitial(adUnitId) {
+    return bridgeCall('GoogleMobileAds.LoadRewardedInterstitial', { ad_unit_id: adUnitId });
 }
 
 export async function showRewardedInterstitial() {
@@ -55,8 +60,8 @@ export async function showRewardedInterstitial() {
 
 // ── App Open ──────────────────────────────────────────────────────────────────
 
-export async function loadAppOpen(options = {}) {
-    return bridgeCall('GoogleMobileAds.LoadAppOpen', options);
+export async function loadAppOpen(adUnitId) {
+    return bridgeCall('GoogleMobileAds.LoadAppOpen', { ad_unit_id: adUnitId });
 }
 
 export async function showAppOpen() {
