@@ -72,7 +72,7 @@
             "android.permission.INTERNET",
             "android.permission.ACCESS_NETWORK_STATE"
         ],
-        "application_meta_data": [
+        "meta_data": [
             {
                 "name": "com.google.android.gms.ads.APPLICATION_ID",
                 "value": "${ADMOB_APP_ID}"

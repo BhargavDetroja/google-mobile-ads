@@ -12,8 +12,10 @@ Supports **Banner**, **Interstitial**, **Rewarded**, **Rewarded Interstitial**, 
 
 - PHP 8.2+
 - Laravel 12+
-- NativePHP Mobile 3+
+- NativePHP Mobile 3.x or 4.x
 - An [AdMob account](https://admob.google.com) (free)
+
+> **NativePHP Mobile v4:** this plugin works unchanged under v4's web view — the bridge functions, events, and Blade `<x-google-ads::banner>` component all keep working exactly as they do on v3. SuperNative-native `NativeComponent` screens are not required to use this plugin.
 
 ---
 
